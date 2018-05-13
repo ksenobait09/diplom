@@ -1,28 +1,60 @@
 package com.ksenobait09.diplom.bmstu_test;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import Lib.*;
 
+import com.aspose.cells.Cell;
+import com.aspose.cells.Cells;
 import com.aspose.cells.LibsLoadHelper;
+import com.aspose.cells.Workbook;
+import com.aspose.cells.Worksheet;
+
+import java.io.File;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+    private String filepath;
+
+    public String getRealPathFromURI( Uri contentUri) {
+        String result;
+        Cursor cursor = getContentResolver().query(contentUri, null, null, null, null);
+        if (cursor == null) { // Source is Dropbox or other similar local file path
+            result = contentUri.getPath();
+        } else {
+            cursor.moveToFirst();
+            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+            result = cursor.getString(idx);
+            cursor.close();
+        }
+        return result;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         LibsLoadHelper.loadLibs(getApplicationContext());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Functions.verifyStoragePermissions(this);
     }
 
     // call this
     public void goToServerActivity(View view) {
         Intent intent = new Intent(this, DisplayServerActivity.class);
+
         startActivity(intent);
     }
 
@@ -65,7 +97,12 @@ public class MainActivity extends AppCompatActivity {
             Uri uri = null;
             if (resultData != null) {
                 uri = resultData.getData();
-                Log.i(TAG, "Uri: " + uri.toString());
+                Context context =  getApplicationContext();
+                // TODO: сделать быстрым добавление, перенести на вторую activity всю работу с excel и сервером
+                filepath = Functions.getPath(context, uri);
+                Log.e(TAG, filepath.toString() );
+                Data data = new Data();
+                Functions.loadExcel(filepath, data);
             }
         }
     }
