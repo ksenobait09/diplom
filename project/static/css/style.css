@@ -1,0 +1,16 @@
+body {
+    font-family: sans-serif;
+}
+
+.hide {
+    display:none !important;
+}
+
+#main {
+    margin: 70px 0px 0px 0px;
+}
+
+#main>div {
+    display: flex;
+    flex-direction:column;
+}
