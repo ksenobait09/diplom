@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
@@ -54,22 +55,71 @@ public class Functions {
     }
     public static void loadExcel(String filepath, Data data) {
         String TAG = "loadExcel";
+        int QUESTION_COL = 0;
+        int ANSWER_COL = 1;
+        int ANSWER_TRUE_COL = 2;
         // Обработка excel-таблицы
         try {
             Workbook workbook = new Workbook(filepath);
-            int sheetIndex = workbook.getWorksheets().add();
-            Worksheet worksheet = workbook.getWorksheets().get(sheetIndex);
+            Worksheet worksheet = workbook.getWorksheets().get(0);
             Cells cells = worksheet.getCells();
 
-            //Adding a string value to the cell
-            Cell cell = cells.get("A1");
-            cell.setValue("Hello World");
-            workbook.save(filepath);
+            Cell testNameCell = cells.get("B1");
+            String testName = testNameCell.getStringValue();
+            if (testName.isEmpty()) {
+                throw new IllegalAccessException("Неправильно составленный exсel");
+            }
+            data.setTestName(testName);
+            int row = 3;
+            int lastQuestionIndex = 0;
+            while (true) {
+                Cell questionCell = cells.get(row, QUESTION_COL);
+                Cell answerCell = cells.get(row, ANSWER_COL);
+                Cell isTrueCell = cells.get(row, ANSWER_TRUE_COL);
+                String question = questionCell.getStringValue();
+                String answer = answerCell.getStringValue();
+                Boolean isTrue = !isTrueCell.getStringValue().isEmpty();
+                if (question.isEmpty() && answer.isEmpty()){
+                    break;
+                } else if (!question.isEmpty() && answer.isEmpty()) {
+                    throw new IllegalAccessException("Неправильно составленный exсel");
+                }
+
+                if (!question.isEmpty()) {
+                    lastQuestionIndex = data.addQuestion(question);
+                }
+                data.questions.get(lastQuestionIndex).addAnswer(answer, isTrue);
+                row++;
+            }
+
+            row++;
 
         } catch (Exception e) {
             Log.e(TAG, e.toString() + filepath );
         }
     }
+    public static String getFileName(Context context, Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+
     /**
      * Get a file path from a Uri. This will get the the path for Storage Access
      * Framework Documents, as well as the _data field for the MediaStore and

@@ -10,6 +10,7 @@ public final class Data {
         // Конструктор Answer
         Answer(String answer, boolean isRight) {
             text = answer;
+            this.isRight = isRight;
         }
 
         String text;
@@ -43,8 +44,13 @@ public final class Data {
         questions.add(q);
         return id;
     }
+    void setTestName(String testName) {
+        this.testName = testName;
+    }
+
     public Data() {
          questions = new ArrayList<Question>();
     }
     ArrayList<Question> questions;
+    String testName;
 }

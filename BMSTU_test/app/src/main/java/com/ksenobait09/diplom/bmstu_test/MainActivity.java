@@ -14,6 +14,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
 import Lib.*;
 
 import com.aspose.cells.Cell;
@@ -54,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     // call this
     public void goToServerActivity(View view) {
         Intent intent = new Intent(this, DisplayServerActivity.class);
-
+        intent.putExtra("filepath", filepath );
         startActivity(intent);
     }
 
@@ -100,9 +103,14 @@ public class MainActivity extends AppCompatActivity {
                 Context context =  getApplicationContext();
                 // TODO: сделать быстрым добавление, перенести на вторую activity всю работу с excel и сервером
                 filepath = Functions.getPath(context, uri);
-                Log.e(TAG, filepath.toString() );
-                Data data = new Data();
-                Functions.loadExcel(filepath, data);
+                if (filepath != null) {
+                    Button goToNextPage  = (Button) findViewById(R.id.button2);
+                    goToNextPage.setEnabled(true);
+                    TextView success  = (TextView) findViewById(R.id.textView);
+                    String filename = Functions.getFileName(context, uri);
+                    success.setText("Выбранный файл: " + filename);
+                    success.setVisibility(View.VISIBLE);
+                }
             }
         }
     }
