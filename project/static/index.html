@@ -33,12 +33,11 @@
         <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
         <meta name="theme-color" content="#000000">
         <title>Автоматизированная система тестирования</title>
-        <link rel="stylesheet" href="css/style.css" />
     </head>
     <body>
         <h1 id="testName">
         </h1>
-        <form id="test" type="POST">
+        <form id="test" method="POST">
         </form>
     </body>
 </html>
@@ -52,7 +51,7 @@ function renderTest(test) {
        q.answers.forEach(function(a) {
             testString += '<label><input type="radio" name="'+q.id+'" value="'+a.id+'">'+a.text+'</label>';
        });
-        if (maxQuestionsId == q.id) {
+        if (maxQuestionsId != q.id) {
             testString+='<hr />';
         } else {
             testString+='<input type="submit">';
@@ -61,9 +60,8 @@ function renderTest(test) {
     document.getElementById("test").innerHTML = testString;
 }
 </script>
-<script>
-
+<!-- <script>
 let myTest = {testName: "test", questions: [{id: 1, text: "kakova huya?", answers: [{id: 1, text: "takogo"}]}] };
 renderTest(myTest);
-</script>
+</script> -!>
 

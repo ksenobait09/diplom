@@ -46,7 +46,7 @@ public class Functions {
 
     /**
      * Checks if the app has permission to write to device storage
-     *
+     * <p>
      * If the app does not has permission then the user will be prompted to grant permissions
      *
      * @param activity
@@ -65,6 +65,7 @@ public class Functions {
             );
         }
     }
+
     public static void loadExcel(String filepath, Data data) {
         String TAG = "loadExcel";
         int QUESTION_COL = 0;
@@ -91,7 +92,7 @@ public class Functions {
                 String question = questionCell.getStringValue();
                 String answer = answerCell.getStringValue();
                 Boolean isTrue = !isTrueCell.getStringValue().isEmpty();
-                if (question.isEmpty() && answer.isEmpty()){
+                if (question.isEmpty() && answer.isEmpty()) {
                     break;
                 } else if (!question.isEmpty() && answer.isEmpty()) {
                     throw new IllegalAccessException("Неправильно составленный exсel");
@@ -107,9 +108,10 @@ public class Functions {
             row++;
 
         } catch (Exception e) {
-            Log.e(TAG, e.toString() + filepath );
+            Log.e(TAG, e.toString() + filepath);
         }
     }
+
     public static String convertStreamToString(InputStream is) throws Exception {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
@@ -121,7 +123,7 @@ public class Functions {
         return sb.toString();
     }
 
-    public static String getStringFromFile (String filePath) throws Exception {
+    public static String getStringFromFile(String filePath) throws Exception {
         File fl = new File(filePath);
         FileInputStream fin = new FileInputStream(fl);
         String ret = convertStreamToString(fin);
@@ -129,6 +131,7 @@ public class Functions {
         fin.close();
         return ret;
     }
+
     public static String getFileName(Context context, Uri uri) {
         String result = null;
         if (uri.getScheme().equals("content")) {
@@ -157,7 +160,7 @@ public class Functions {
      * other file-based ContentProviders.
      *
      * @param context The context.
-     * @param uri The Uri to query.
+     * @param uri     The Uri to query.
      * @author paulburke
      */
     public static String getPath(final Context context, final Uri uri) {
@@ -176,7 +179,6 @@ public class Functions {
                     return Environment.getExternalStorageDirectory() + "/" + split[1];
                 }
 
-                // TODO handle non-primary volumes
             }
             // DownloadsProvider
             else if (isDownloadsDocument(uri)) {
@@ -203,7 +205,7 @@ public class Functions {
                 }
 
                 final String selection = "_id=?";
-                final String[] selectionArgs = new String[] {
+                final String[] selectionArgs = new String[]{
                         split[1]
                 };
 
@@ -231,9 +233,9 @@ public class Functions {
      * Get the value of the data column for this Uri. This is useful for
      * MediaStore Uris, and other file-based ContentProviders.
      *
-     * @param context The context.
-     * @param uri The Uri to query.
-     * @param selection (Optional) Filter used in the query.
+     * @param context       The context.
+     * @param uri           The Uri to query.
+     * @param selection     (Optional) Filter used in the query.
      * @param selectionArgs (Optional) Selection arguments used in the query.
      * @return The value of the _data column, which is typically a file path.
      */
@@ -291,5 +293,29 @@ public class Functions {
      */
     public static boolean isGooglePhotosUri(Uri uri) {
         return "com.google.android.apps.photos.content".equals(uri.getAuthority());
+    }
+
+    public static String dataToJSONString(Data data) {
+        StringBuilder JSON = new StringBuilder("<script>let myTest=");
+        JSON.append("{testName:\"").append(data.testName).append("\", questions: [");
+        int questionsCount = data.questions.size();
+        for (int questionId = 0; questionId < questionsCount; questionId++) {
+            Data.Question currentQuestion = data.questions.get(questionId);
+            JSON.append("{id:").append(Integer.toString(questionId)).append(", text:\"").append(currentQuestion.text).append("\",answers:[");
+            int answersCount = currentQuestion.answers.size();
+            for (int answerId = 0; answerId < answersCount; answerId++) {
+                Data.Answer currentAnswer = currentQuestion.answers.get(answerId);
+                JSON.append("{id:").append(Integer.toString(answerId)).append(", text:\"").append(currentAnswer.text).append("\"}");
+                if (answerId != answersCount - 1) {
+                    JSON.append(",");
+                }
+            }
+            JSON.append("]}");
+            if (questionId != questionsCount - 1) {
+                JSON.append(",");
+            }
+        }
+        JSON.append("]};renderTest(myTest);</script>");
+        return JSON.toString();
     }
 }

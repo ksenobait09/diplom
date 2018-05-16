@@ -5,26 +5,18 @@ import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
-import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
 import android.text.format.Formatter;
 import android.util.Log;
 
-import com.koushikdutta.async.http.WebSocket;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
 import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
 import com.koushikdutta.async.http.server.AsyncHttpServerResponse;
 import com.koushikdutta.async.http.server.HttpServerRequestCallback;
 
-import java.io.File;
-import java.time.Year;
-import java.util.ArrayList;
-import java.util.List;
-
 import Lib.Data;
 import Lib.Functions;
 import Lib.MyApp;
-import Lib.TestTemplate;
 
 
 /**
@@ -72,14 +64,13 @@ public class ServerService extends IntentService {
 
                     //save file in internal storage:
                     Context context = getApplicationContext();
-                    TestTemplate.createTemplateFile(context);
-
+                    // server index page
+                    String template = Functions.convertStreamToString(appContext.getAssets().open("test_template.html"));
+                    String testdata = Functions.dataToJSONString(data);
+                    final String page = template + testdata;
                     /// server
                     server = new AsyncHttpServer();
 
-                    List<WebSocket> _sockets = new ArrayList<WebSocket>();
-
-                    final String page = Functions.convertStreamToString(appContext.getAssets().open("test_template.html"));
                     server.get("/", new HttpServerRequestCallback() {
                         @Override
                         public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
