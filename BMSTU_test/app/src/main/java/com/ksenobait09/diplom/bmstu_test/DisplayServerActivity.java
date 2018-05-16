@@ -12,6 +12,7 @@ import android.widget.TextView;
 import Lib.Data;
 import Lib.Functions;
 
+
 public class DisplayServerActivity extends AppCompatActivity {
     String TAG = "DisplayServerActivity";
     Data data;

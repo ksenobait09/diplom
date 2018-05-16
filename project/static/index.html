@@ -1,28 +1,69 @@
 <!DOCTYPE html>
+<style>
+    body {
+        font-family: sans-serif;
+    }
+
+    #test {
+        margin: 70px 0px 0px 0px;
+        display: flex;
+        flex-direction:column;
+    }
+    label {
+        margin:6px;
+    }
+    hr {
+        border: 0;
+        clear:both;
+        display:block;
+        width: 96%;
+        background-color:#000000;
+        height: 1px;
+        margin-left: 0px; !important;
+    }
+    input[type="submit"] {
+        margin-top: 10px;
+
+        width: min-content;
+    }
+</style>
 <html>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
         <meta name="theme-color" content="#000000">
-        <title>Тестирование {% По предмету "Эксплуатация АСОИУ" %}</title>
+        <title>Автоматизированная система тестирования</title>
         <link rel="stylesheet" href="css/style.css" />
     </head>
     <body>
-        <h1>
-            Тестирование {% По предмету "Эксплуатация АСОИУ" %}
+        <h1 id="testName">
         </h1>
-        <form id="main">
-            <div name="fio">
-                <label>Студент <input type="text" name="" value=""> </label> <br>
-                <label>Группы <input type="text" name="" value=""> </label><br>
-                <button> </button>
-            </div>
-            <div name="test" class="hide">
-            </div>
+        <form id="test" type="POST">
         </form>
     </body>
 </html>
-<script
-  src="https://code.jquery.com/jquery-3.3.1.js"
-  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
-  crossorigin="anonymous"></script>
+<script>
+function renderTest(test) {
+    document.getElementById("testName").innerHTML= test.testName;
+    var testString = '';
+    let maxQuestionsId = test.questions.length-1;
+    test.questions.forEach(function(q) {
+       testString += '<h4>' + q.text + '</h4>';
+       q.answers.forEach(function(a) {
+            testString += '<label><input type="radio" name="'+q.id+'" value="'+a.id+'">'+a.text+'</label>';
+       });
+        if (maxQuestionsId == q.id) {
+            testString+='<hr />';
+        } else {
+            testString+='<input type="submit">';
+        }
+    });
+    document.getElementById("test").innerHTML = testString;
+}
+</script>
+<script>
+
+let myTest = {testName: "test", questions: [{id: 1, text: "kakova huya?", answers: [{id: 1, text: "takogo"}]}] };
+renderTest(myTest);
+</script>
+
