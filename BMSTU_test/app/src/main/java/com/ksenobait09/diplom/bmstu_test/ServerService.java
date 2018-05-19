@@ -5,10 +5,16 @@ import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.text.format.Formatter;
 import android.util.Log;
 
+import com.aspose.cells.LibsLoadHelper;
+import com.koushikdutta.async.http.NameValuePair;
+import com.koushikdutta.async.http.body.AsyncHttpRequestBody;
+import com.koushikdutta.async.http.body.MultipartFormDataBody;
+import com.koushikdutta.async.http.body.UrlEncodedFormBody;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
 import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
 import com.koushikdutta.async.http.server.AsyncHttpServerResponse;
@@ -56,14 +62,6 @@ public class ServerService extends IntentService {
                     Log.w(TAG, "Завершена загрузка из excel");
                     ((MyApp) this.getApplication()).setTestData(data);
 
-
-                    //get local ip
-                    WifiManager wifiManager = (WifiManager) appContext.getSystemService(WIFI_SERVICE);
-                    String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
-                    Log.w(TAG, ipAddress);
-
-                    //save file in internal storage:
-                    Context context = getApplicationContext();
                     // server index page
                     String template = Functions.convertStreamToString(appContext.getAssets().open("test_template.html"));
                     String testdata = Functions.dataToJSONString(data);
@@ -75,6 +73,23 @@ public class ServerService extends IntentService {
                         @Override
                         public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
                             response.send(page);
+                        }
+                    });
+
+                    server.post("/", new HttpServerRequestCallback() {
+                        @Override
+                        public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
+                            UrlEncodedFormBody body = (UrlEncodedFormBody)request.getBody();
+                            for (NameValuePair pair: body.get()) {
+                                int questionId = Integer.parseInt(pair.getName());
+                                int answerId = Integer.parseInt(pair.getValue());
+                                Data.Question q =  ((MyApp) getApplication()).data.questions.get(questionId);
+                                if (q.rightAnswerId == answerId) {
+                                    q.rightAnswersCount++;
+                                }
+                                q.answersCount++;
+                            }
+                            response.send("Тест успешно завершен");
                         }
                     });
 

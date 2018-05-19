@@ -6,7 +6,7 @@ package Lib;
 import java.util.ArrayList;
 
 public final class Data {
-    class Answer {
+    public class Answer {
         // Конструктор Answer
         Answer(String answer, boolean isRight) {
             text = answer;
@@ -17,7 +17,7 @@ public final class Data {
         boolean isRight;
     }
 
-    class Question {
+    public class Question {
         // Конструктор Question
         Question(String s) {
             answers = new ArrayList<Answer>();
@@ -34,9 +34,11 @@ public final class Data {
             return id;
         }
 
-        String text;
-        ArrayList<Answer> answers;
-        int rightAnswerId;
+        public String text;
+        public ArrayList<Answer> answers;
+        public int rightAnswersCount = 0;
+        public int answersCount = 0;
+        public int rightAnswerId;
     }
     int addQuestion(String question) {
         int id = questions.size();
@@ -51,6 +53,6 @@ public final class Data {
     public Data() {
          questions = new ArrayList<Question>();
     }
-    ArrayList<Question> questions;
-    String testName;
+    public ArrayList<Question> questions;
+    public String testName;
 }

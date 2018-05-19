@@ -7,8 +7,7 @@ import android.app.Application;
  */
 
 public class MyApp extends Application {
-
-    Data data;
+    public Data data;
     public Data getTestData() {
         return data;
     }
