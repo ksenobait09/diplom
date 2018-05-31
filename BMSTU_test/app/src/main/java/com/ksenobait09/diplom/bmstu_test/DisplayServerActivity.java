@@ -20,6 +20,7 @@ public class DisplayServerActivity extends AppCompatActivity {
     Data data;
     String filepath;
     Context context;
+    Intent intentServerService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,14 +35,21 @@ public class DisplayServerActivity extends AppCompatActivity {
         Log.e(TAG, filepath.toString());
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Прекращаем работу сервера
+        if (intentServerService != null) {
+            intentServerService.setAction("com.ksenobait09.diplom.bmstu_test.action.STOP");
+            startService(intentServerService);
+            intentServerService = null;
+        }
+    }
+
     public void startServer(View view) {
         Button startServerButton = (Button) findViewById(R.id.button4);
         startServerButton.setEnabled(false);
         TextView statusBar = (TextView) findViewById(R.id.textView3);
-
-        Intent i=new Intent(context, ServerService.class);
-        i.setAction("com.ksenobait09.diplom.bmstu_test.action.START");
-        i.putExtra("com.ksenobait09.diplom.bmstu_test.extra.FILEPATH", filepath);
 
         //get local ip
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
@@ -51,11 +59,24 @@ public class DisplayServerActivity extends AppCompatActivity {
             statusText = "Ошибка сети. Пожалуйста, подключитесь к Wi-Fi сети или проверьте настройки маршрутизатора.";
         } else {
             statusText ="Тестовая система запущена по адресу:\n http://" + ipAddress + ":5000/. Для окончания тестирования нажмите кнопку далее.";
-            startService(i);
+
+            // Запустить тестовую систему
+            intentServerService=new Intent(context, ServerService.class);
+            intentServerService.setAction("com.ksenobait09.diplom.bmstu_test.action.START");
+            intentServerService.putExtra("com.ksenobait09.diplom.bmstu_test.extra.FILEPATH", filepath);
+            startService(intentServerService);
+
+            // активировать кнопку "далее"
             Button goToNextPage  = (Button) findViewById(R.id.button3);
             goToNextPage.setEnabled(true);
         }
         statusBar.setText(statusText);
         statusBar.setVisibility(View.VISIBLE);
+    }
+
+    public void goToResultsActivity(View view) {
+        Intent intent = new Intent(this, DisplayResults.class);
+        intent.putExtra("filepath", filepath );
+        startActivity(intent);
     }
 }

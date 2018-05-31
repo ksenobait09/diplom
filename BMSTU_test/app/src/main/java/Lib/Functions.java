@@ -318,4 +318,34 @@ public class Functions {
         JSON.append("]};renderTest(myTest);</script>");
         return JSON.toString();
     }
+
+    public static void saveResultsExcel(String filepath, Data data) {
+        String TAG = "saveResultsExcel";
+        int QUESTION_COL = 0;
+        int RESULTS_COL = 1;
+        // Обработка excel-таблицы
+        try {
+            Workbook workbook = new Workbook(filepath);
+            int sheetIndex = workbook.getWorksheets().add();
+            Worksheet worksheet = workbook.getWorksheets().get(sheetIndex);
+            Cells cells = worksheet.getCells();
+
+            Cell testNameCell = cells.get("B1");
+            testNameCell.setValue("Результаты " + data.testName);
+            int row = 3;
+            int lastQuestionIndex = 0;
+            for (int i = 0; i < data.questions.size(); i++) {
+                Cell questionCell = cells.get(row, QUESTION_COL);
+                Cell ResultsCell = cells.get(row, RESULTS_COL);
+                Data.Question q = data.questions.get(i);
+                questionCell.setValue(q.text);
+                String result = String.valueOf((int)(((double)q.rightAnswersCount) / q.answersCount* 100));
+                ResultsCell.setValue(result + " %");
+                row++;
+            }
+            workbook.save(filepath);
+        } catch (Exception e) {
+            Log.e(TAG, e.toString() + filepath);
+        }
+    }
 }

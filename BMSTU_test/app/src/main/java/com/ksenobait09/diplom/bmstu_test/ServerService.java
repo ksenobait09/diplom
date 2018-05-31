@@ -11,6 +11,7 @@ import android.text.format.Formatter;
 import android.util.Log;
 
 import com.aspose.cells.LibsLoadHelper;
+import com.koushikdutta.async.AsyncServer;
 import com.koushikdutta.async.http.NameValuePair;
 import com.koushikdutta.async.http.body.AsyncHttpRequestBody;
 import com.koushikdutta.async.http.body.MultipartFormDataBody;
@@ -19,6 +20,8 @@ import com.koushikdutta.async.http.server.AsyncHttpServer;
 import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
 import com.koushikdutta.async.http.server.AsyncHttpServerResponse;
 import com.koushikdutta.async.http.server.HttpServerRequestCallback;
+
+import java.net.BindException;
 
 import Lib.Data;
 import Lib.Functions;
@@ -34,10 +37,10 @@ import Lib.MyApp;
 public class ServerService extends IntentService {
 
     private AsyncHttpServer server;
-    private static int FOREGROUND_ID=1338;
+    private static int FOREGROUND_ID = 1338;
     private String TAG = "IntentService";
     public static final String ACTION_START = "com.ksenobait09.diplom.bmstu_test.action.START";
-    public static final String ACTION_PROCESS = "com.ksenobait09.diplom.bmstu_test.action.PROCESS";
+    public static final String ACTION_STOP = "com.ksenobait09.diplom.bmstu_test.action.STOP";
 
     public static final String EXTRA_FILEPATH = "com.ksenobait09.diplom.bmstu_test.extra.FILEPATH";
 
@@ -48,12 +51,12 @@ public class ServerService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
-            startForeground(FOREGROUND_ID,
-                    buildForegroundNotification("hui"));
-
             try {
                 final String action = intent.getAction();
-                if (ACTION_START.equals(action)) {
+                if (ACTION_START.equals(action) && server == null) {
+                    startForeground(FOREGROUND_ID,
+                            buildForegroundNotification("abcd"));
+                    server = new AsyncHttpServer();
                     Context appContext = getApplicationContext();
                     final String filepath = intent.getStringExtra(EXTRA_FILEPATH);
                     Data data = new Data();
@@ -66,9 +69,8 @@ public class ServerService extends IntentService {
                     String template = Functions.convertStreamToString(appContext.getAssets().open("test_template.html"));
                     String testdata = Functions.dataToJSONString(data);
                     final String page = template + testdata;
-                    /// server
-                    server = new AsyncHttpServer();
 
+                    /// server
                     server.get("/", new HttpServerRequestCallback() {
                         @Override
                         public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
@@ -79,44 +81,48 @@ public class ServerService extends IntentService {
                     server.post("/", new HttpServerRequestCallback() {
                         @Override
                         public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
-                            UrlEncodedFormBody body = (UrlEncodedFormBody)request.getBody();
-                            for (NameValuePair pair: body.get()) {
-                                int questionId = Integer.parseInt(pair.getName());
-                                int answerId = Integer.parseInt(pair.getValue());
-                                Data.Question q =  ((MyApp) getApplication()).data.questions.get(questionId);
-                                if (q.rightAnswerId == answerId) {
-                                    q.rightAnswersCount++;
+                            UrlEncodedFormBody body = (UrlEncodedFormBody) request.getBody();
+                            try {
+                                for (NameValuePair pair : body.get()) {
+                                    int questionId = Integer.parseInt(pair.getName());
+                                    int answerId = Integer.parseInt(pair.getValue());
+                                    Data.Question q = ((MyApp) getApplication()).data.questions.get(questionId);
+                                    if (q.rightAnswerId == answerId) {
+                                        q.rightAnswersCount++;
+                                    }
+                                    q.answersCount++;
                                 }
-                                q.answersCount++;
+                            } catch (Exception e) {
+                            } finally {
+                                response.send("Тест успешно завершен");
                             }
-                            response.send("Тест успешно завершен");
                         }
                     });
 
-// listen on port 5000
-                    server.listen(5000);
-// browsing http://localhost:5000 will return Hello!!!
+                    //Если порт закрыт, идём к следующему
+                    int port = 5000;
+                    server.listen(port);
 
-                } else if (ACTION_PROCESS.equals(action)) {
+                } else if (ACTION_STOP.equals(action)) {
+                    AsyncServer.getDefault().stop();
+                    stopForeground(true);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Log.e(TAG, e.toString());
                 server.stop();
-            }finally {
-                stopForeground(true);
             }
         }
     }
 
 
     private Notification buildForegroundNotification(String filename) {
-        NotificationCompat.Builder b=new NotificationCompat.Builder(this);
+        NotificationCompat.Builder b = new NotificationCompat.Builder(this);
 
         b.setOngoing(true)
                 .setContentTitle("ContentTitle")
                 .setContentText("ContentText");
 
-        return(b.build());
+        return (b.build());
     }
+
 }
